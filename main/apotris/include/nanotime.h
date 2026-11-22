@@ -495,6 +495,27 @@ void nanotime_yield() { svcSleepThread(YieldType_ToAnyThread); }
 #endif
 #endif
 
+/*
+ * Android's bionic provides clock_gettime(CLOCK_MONOTONIC) on all supported
+ * Android API levels, but timespec_get() is only available on newer releases.
+ * Prefer the monotonic POSIX clock on Android so binaries remain loadable on
+ * older Android versions (including Fire OS devices).
+ */
+#ifndef NANOTIME_NOW_IMPLEMENTED
+#if defined(__ANDROID__)
+#include <time.h>
+uint64_t nanotime_now() {
+    struct timespec now;
+    if (clock_gettime(CLOCK_MONOTONIC, &now) == 0) {
+        return (uint64_t)now.tv_sec * NANOTIME_NSEC_PER_SEC +
+               (uint64_t)now.tv_nsec;
+    }
+    return UINT64_C(0);
+}
+#define NANOTIME_NOW_IMPLEMENTED
+#endif
+#endif
+
 #ifndef NANOTIME_NOW_IMPLEMENTED
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #include <time.h>
