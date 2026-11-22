@@ -1,6 +1,7 @@
 package com.apotris.android;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import org.libsdl.app.SDLActivity;
@@ -10,6 +11,8 @@ import org.libsdl.app.SDLActivity;
  * {@code shared_library('main', ...)}). SDL2 and the game are linked into that .so.
  */
 public class ApotrisActivity extends SDLActivity {
+    private static final String INPUT_TAG = "ApotrisInput";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ApotrisAssetLoader.syncIfNeeded(this);
@@ -74,6 +77,21 @@ public class ApotrisActivity extends SDLActivity {
                 event.getScanCode(),
                 event.getFlags(),
                 event.getSource());
+
+        if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT
+                || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN
+                || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT
+                || event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+            Log.i(INPUT_TAG,
+                    "key=" + KeyEvent.keyCodeToString(event.getKeyCode())
+                    + " mapped=" + KeyEvent.keyCodeToString(mappedKeyCode)
+                    + " action=" + (event.getAction() == KeyEvent.ACTION_DOWN ? "DOWN" : "UP")
+                    + " repeat=" + event.getRepeatCount()
+                    + " device=" + event.getDeviceId()
+                    + " scan=" + event.getScanCode()
+                    + " downTime=" + event.getDownTime()
+                    + " eventTime=" + event.getEventTime());
+        }
 
         return SDLActivity.handleKeyEvent(null, mappedKeyCode, mappedEvent, null);
     }
