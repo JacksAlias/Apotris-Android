@@ -7,6 +7,16 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $subprojects = Join-Path $repoRoot "main\apotris\subprojects"
 
+# The Android checkout contains a partial SDL2 source directory (only a few
+# Android compatibility files). Meson sees the directory and skips extracting
+# the sdl2.wrap archive, then fails because meson.build is absent. Remove that
+# incomplete directory so Meson can populate it from the pinned wrap archive.
+$sdl2Source = Join-Path $subprojects "SDL2-2.28.5"
+if ((Test-Path $sdl2Source) -and -not (Test-Path (Join-Path $sdl2Source "meson.build"))) {
+    Write-Host "Removing incomplete SDL2 source tree; Meson will restore it from sdl2.wrap"
+    Remove-Item $sdl2Source -Recurse -Force
+}
+
 # Paths match main/apotris/.gitmodules (Meson subproject names: general-tools, openmpt, SoLoud).
 $repos = @(
     @{ Name = "general-tools"; Url = "https://gitea.com/Apotris/general-tools.git"; Branch = "main" },
